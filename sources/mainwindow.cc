@@ -104,6 +104,12 @@ void MainWindow::on_playButton_clicked()
     app.playFittestInstrument();
 }
 
+void MainWindow::on_playReferenceButton_clicked()
+{
+    Application &app = static_cast<Application &>(*qApp);
+    app.playReferenceAudio();
+}
+
 void MainWindow::on_startButton_clicked()
 {
     Application &app = static_cast<Application &>(*qApp);

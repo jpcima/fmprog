@@ -116,42 +116,7 @@ void Application::playFittestInstrument()
         ga.set_paused(was_paused);
     }
 
-    // stop current
-    QAudioOutput *audioOut = audioOut_;
-    if (audioOut) {
-        audioOut->stop();
-        audioOut->deleteLater();
-        audioOut_ = nullptr;
-    }
-
-    // set up audio
-    QAudioFormat format;
-    format.setByteOrder(QAudioFormat::Endian(QSysInfo::ByteOrder));
-    format.setChannelCount(2);
-    format.setCodec("audio/pcm");
-    format.setSampleRate(sample_rate);
-    format.setSampleSize(16);
-    format.setSampleType(QAudioFormat::SignedInt);
-
-    audioOut = new QAudioOutput(format, this);
-    audioOut_ = audioOut;
-
-    QByteArray &audioOutData = audioOutData_;
-    audioOutData.clear();
-    audioOutData.reserve(2 * sizeof(int16_t) * sound->length);
-    for (unsigned i = 0, n = sound->length; i < n; ++i) {
-        long sample = std::lround(sound->data[i] * 32768.0);
-        sample = std::min(sample, 32767l);
-        sample = std::max(sample, -32768l);
-        int16_t sample16 = (int16_t)sample;
-        audioOutData.append((const char *)&sample16, sizeof(int16_t)); // left
-        audioOutData.append((const char *)&sample16, sizeof(int16_t)); // right
-    }
-
-    // play
-    QBuffer *buffer = new QBuffer(&audioOutData, audioOut);
-    buffer->open(QBuffer::ReadOnly);
-    audioOut->start(buffer);
+    playAudio(*sound, sample_rate);
 }
 
 void Application::setFmChipClock(unsigned clock)
@@ -200,6 +165,53 @@ void Application::togglePausedAi()
 {
     ai::GeneticAlgorithm &ga = *ga_;
     ga.toggle_paused();
+}
+
+void Application::playReferenceAudio()
+{
+    const fvec_t *snd = sndOriginal_.get();
+    if (snd)
+        playAudio(*snd, sampleRateOriginal_);
+}
+
+void Application::playAudio(const fvec_t &sound, double sample_rate)
+{
+    // stop current
+    QAudioOutput *audioOut = audioOut_;
+    if (audioOut) {
+        audioOut->stop();
+        audioOut->deleteLater();
+        audioOut_ = nullptr;
+    }
+
+    // set up audio
+    QAudioFormat format;
+    format.setByteOrder(QAudioFormat::Endian(QSysInfo::ByteOrder));
+    format.setChannelCount(2);
+    format.setCodec("audio/pcm");
+    format.setSampleRate(sample_rate);
+    format.setSampleSize(16);
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    audioOut = new QAudioOutput(format, this);
+    audioOut_ = audioOut;
+
+    QByteArray &audioOutData = audioOutData_;
+    audioOutData.clear();
+    audioOutData.reserve(2 * sizeof(int16_t) * sound.length);
+    for (unsigned i = 0, n = sound.length; i < n; ++i) {
+        long sample = std::lround(sound.data[i] * 32768.0);
+        sample = std::min(sample, 32767l);
+        sample = std::max(sample, -32768l);
+        int16_t sample16 = (int16_t)sample;
+        audioOutData.append((const char *)&sample16, sizeof(int16_t)); // left
+        audioOutData.append((const char *)&sample16, sizeof(int16_t)); // right
+    }
+
+    // play
+    QBuffer *buffer = new QBuffer(&audioOutData, audioOut);
+    buffer->open(QBuffer::ReadOnly);
+    audioOut->start(buffer);
 }
 
 void Application::resampleSound()

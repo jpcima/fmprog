@@ -26,6 +26,8 @@ public:
     void setPausedAi(bool paused);
     void togglePausedAi();
 
+    void playReferenceAudio();
+
     unsigned fmChipClock() const noexcept { return fmChipClock_; }
     double fmSampleRate() const noexcept { return fmChipClock_ / 144.0; }
 
@@ -34,6 +36,7 @@ signals:
     void fmChipClockChanged(unsigned clock);
 
 private:
+    void playAudio(const fvec_t &sound, double sample_rate);
     void resampleSound();
     void detectPitch();
     void onGenerationFromOtherThread(size_t generation_num, const ai::Individual &fittest);
