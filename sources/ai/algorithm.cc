@@ -78,7 +78,7 @@ void GeneticAlgorithm::exec()
     volatile bool *pause = &pause_;
     GeneticData &gdata = *gdata_;
 
-    std::mt19937_64 prng;
+    std::mt19937_64 prng{std::random_device{}()};
     static constexpr unsigned pop_size = GeneticData::population_size;
 
     size_t generation_num = 0;

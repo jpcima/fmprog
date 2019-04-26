@@ -10,11 +10,12 @@ Individual Individual::create_random()
     Individual x;
     FmBank::Instrument &ins = x.ins_;
 
+    std::mt19937_64 prng{std::random_device{}()};
+
     for (const MetaParameter &mp : MP_instrument) {
         if (mp.flags & MP_NotAIFeature)
             continue;
 
-        static std::mt19937_64 prng;
         std::uniform_int_distribution<int> dist(mp.min, mp.max);
 
         mp.set(ins, dist(prng));
