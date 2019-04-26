@@ -23,24 +23,6 @@
 
 static const unsigned g_outputRate = 53267;
 
-struct OPN_Operator
-{
-    //! Raw register data
-    uint8_t     data[7];
-};
-
-struct OPN_PatchSetup
-{
-    //! Operators prepared for sending to OPL chip emulator
-    OPN_Operator    OPS[4];
-    uint8_t         fbalg;
-    uint8_t         lfosens;
-    //! Fine tuning
-    int8_t          finetune;
-    //! Single note (for percussion instruments)
-    uint8_t         tone;
-};
-
 void TinySynth::resetChip()
 {
     m_chip->setRate(g_outputRate, 7670454);
@@ -62,11 +44,12 @@ void TinySynth::resetChip()
 
 void TinySynth::setInstrument(const FmBank::Instrument &in)
 {
-    OPN_PatchSetup patch;
+    OPN_PatchSetup &patch = m_patch;
 
-    m_notenum = in.percNoteNum >= 128 ? (in.percNoteNum - 128) : in.percNoteNum;
-    if(m_notenum == 0)
-        m_notenum = 25;
+    // m_notenum = in.percNoteNum >= 128 ? (in.percNoteNum - 128) : in.percNoteNum;
+    // if(m_notenum == 0)
+    //     m_notenum = 25;
+
     m_notesNum = 1;
     m_fineTune = 0;
     m_noteOffsets[0] = in.note_offset1;
@@ -107,18 +90,21 @@ void TinySynth::setInstrument(const FmBank::Instrument &in)
 
 void TinySynth::noteOn()
 {
-    #pragma message("XXX Tuning for OPNA clock")
+    constexpr double coefOPN2 = 321.88557;
+    //constexpr double coefOPNA = 309.12412;
+    constexpr unsigned clockOPN2 = 7670454;
+    //constexpr unsigned clockOPNA = 7987200;
 
-    double hertz = 440.0 * std::exp2((m_notenum - 69) / 12);
-
-    uint32_t octave = 0, ftone = 0;
+    double hertz = std::exp(0.057762265 * m_notenum);
+    double coef = coefOPN2 * clockOPN2 / m_chip->clockRate();
 
     if(hertz < 0) // Avoid infinite loop
         return;
 
-    double coef = 321.88557;
-    //double coef = 309.12412;
     hertz *= coef;
+
+    uint32_t mul_offset = 0;
+    uint32_t octave = 0, ftone = 0;
 
     //Basic range until max of octaves reaching
     while((hertz >= 1023.75) && (octave < 0x3800))
@@ -126,7 +112,34 @@ void TinySynth::noteOn()
         hertz /= 2.0;    // Calculate octave
         octave += 0x800;
     }
+    //Extended range, rely on frequency multiplication increment
+    while(hertz >= 2036.75)
+    {
+        hertz /= 2.0;    // Calculate octave
+        mul_offset++;
+    }
     ftone = octave + static_cast<uint32_t>(hertz + 0.5);
+
+    for(size_t op = 0; op < 4; op++)
+    {
+        uint32_t reg = m_patch.OPS[op].data[0];
+        uint16_t address = 0x30 + (op * 4) + m_cc;
+        if(mul_offset > 0) // Increase frequency multiplication value
+        {
+            uint32_t dt  = reg & 0xF0;
+            uint32_t mul = reg & 0x0F;
+            if((mul + mul_offset) > 0x0F)
+            {
+                mul_offset = 0;
+                mul = 0x0F;
+            }
+            m_chip->writeReg(m_port, address, uint8_t(dt | (mul + mul_offset)));
+        }
+        else
+        {
+            m_chip->writeReg(m_port, address, uint8_t(reg));
+        }
+    }
 
     m_chip->writeReg(m_port, 0xA4 + m_cc, (ftone >> 8) & 0xFF);//Set frequency and octave
     m_chip->writeReg(m_port, 0xA0 + m_cc,  ftone & 0xFF);

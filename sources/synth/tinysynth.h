@@ -23,6 +23,24 @@
 
 class OPNChipBase;
 
+struct OPN_Operator
+{
+    //! Raw register data
+    uint8_t     data[7];
+};
+
+struct OPN_PatchSetup
+{
+    //! Operators prepared for sending to OPL chip emulator
+    OPN_Operator    OPS[4];
+    uint8_t         fbalg;
+    uint8_t         lfosens;
+    //! Fine tuning
+    int8_t          finetune;
+    //! Single note (for percussion instruments)
+    uint8_t         tone;
+};
+
 struct TinySynth
 {
     //! Context of the chip emulator
@@ -42,6 +60,9 @@ struct TinySynth
     uint8_t     m_port;
     //! Relative channel
     uint8_t     m_cc;
+
+    //! Patch
+    OPN_PatchSetup m_patch;
 
     void resetChip();
     void setInstrument(const FmBank::Instrument &in);
