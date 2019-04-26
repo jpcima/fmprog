@@ -25,6 +25,7 @@ public:
     void startAi();
     void setPausedAi(bool paused);
     void togglePausedAi();
+    void resetAi();
 
     void playReferenceAudio();
 

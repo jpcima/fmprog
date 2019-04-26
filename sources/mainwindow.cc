@@ -122,6 +122,12 @@ void MainWindow::on_pauseButton_clicked(bool checked)
     app.setPausedAi(checked);
 }
 
+void MainWindow::on_resetButton_clicked()
+{
+    Application &app = static_cast<Application &>(*qApp);
+    app.resetAi();
+}
+
 void MainWindow::on_pitchComboBox_currentIndexChanged(int index)
 {
     Application &app = static_cast<Application &>(*qApp);

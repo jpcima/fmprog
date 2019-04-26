@@ -33,6 +33,7 @@ private slots:
     void on_playReferenceButton_clicked();
     void on_startButton_clicked();
     void on_pauseButton_clicked(bool checked);
+    void on_resetButton_clicked();
     void on_pitchComboBox_currentIndexChanged(int index);
     void on_fmClockComboBox_currentIndexChanged(int index);
 

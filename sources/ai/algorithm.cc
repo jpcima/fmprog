@@ -72,6 +72,18 @@ void GeneticAlgorithm::toggle_paused()
     pause_cond_.notify_one();
 }
 
+void GeneticAlgorithm::reinitialize()
+{
+    std::unique_ptr<Population> pop(
+        new Population(Population::create_random(GeneticData::population_size)));
+
+    bool was_paused = set_paused(true);
+    std::lock_guard<std::mutex> lock(gmutex_);
+    gdata_->population_ = std::move(pop);
+    gdata_->generation_num_ = 0;
+    set_paused(was_paused);
+}
+
 void GeneticAlgorithm::exec()
 {
     volatile bool *quit = &quit_;
@@ -81,7 +93,6 @@ void GeneticAlgorithm::exec()
     std::mt19937_64 prng{std::random_device{}()};
     static constexpr unsigned pop_size = GeneticData::population_size;
 
-    size_t generation_num = 0;
     ai::Individual fittest_ind;
 
     while (!*quit) {
@@ -97,6 +108,7 @@ void GeneticAlgorithm::exec()
 
         ai::Population &pop = *gdata.population_;
         ai::Evaluation &eval = *gdata.eval_;
+        size_t generation_num = gdata.generation_num_;
 
         /* Evaluation */
         #pragma omp parallel for
@@ -157,7 +169,7 @@ void GeneticAlgorithm::exec()
                 if (next.empty()) {
                     /* Kill */
                     pop = Population::create_random(pop_size);
-                    ++generation_num;
+                    gdata.generation_num_ = generation_num + 1;
                     continue;
                 }
             }
@@ -238,7 +250,7 @@ void GeneticAlgorithm::exec()
         if (gen_callback_)
             gen_callback_(generation_num, fittest_ind);
 
-        ++generation_num;
+        gdata.generation_num_ = generation_num + 1;
     }
 }
 

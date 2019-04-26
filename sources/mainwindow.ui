@@ -210,6 +210,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="resetButton">
+            <property name="text">
+             <string>Reset</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

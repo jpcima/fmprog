@@ -167,6 +167,12 @@ void Application::togglePausedAi()
     ga.toggle_paused();
 }
 
+void Application::resetAi()
+{
+    ai::GeneticAlgorithm &ga = *ga_;
+    ga.reinitialize();
+}
+
 void Application::playReferenceAudio()
 {
     const fvec_t *snd = sndOriginal_.get();

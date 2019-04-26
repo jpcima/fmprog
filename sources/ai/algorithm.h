@@ -30,6 +30,7 @@ public:
     void stop();
     bool set_paused(bool p);
     void toggle_paused();
+    void reinitialize();
 
 private:
     void exec();
@@ -53,6 +54,7 @@ struct GeneticData
 
     std::unique_ptr<ai::Evaluation> eval_;
     std::unique_ptr<ai::Population> population_;
+    size_t generation_num_ = 0;
 };
 
 } // namespace ai
