@@ -25,11 +25,17 @@ fvec_u load_sound_file(const char *filename, double *sample_rate)
     while (read_frames < total_frames) {
         unsigned count = 0;
         aubio_source_do(source.get(), hop_buf.get(), &count);
-        if (count == 0)
-            return nullptr;
-        count = std::min(count, total_frames - read_frames);
-        std::copy(hop_buf->data, &hop_buf->data[count], &snd_buf->data[read_frames]);
-        read_frames += count;
+        if (count > 0) {
+            count = std::min(count, total_frames - read_frames);
+            std::copy(hop_buf->data, &hop_buf->data[count], &snd_buf->data[read_frames]);
+            read_frames += count;
+        }
+        else { // premature end
+            fvec_u result_buf(new_fvec(read_frames));
+            std::copy(snd_buf->data, &snd_buf->data[read_frames], result_buf->data);
+            snd_buf = std::move(result_buf);
+            break;
+        }
     }
 
     if (sample_rate)
