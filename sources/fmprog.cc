@@ -50,8 +50,8 @@ void Application::init()
     ga->set_generation_callback([this](size_t g, const ai::Individual &ind) {
                                     onGenerationFromOtherThread(g, ind);
                                 });
-    ga->set_fitness_callback([this](size_t g, const double *f, size_t n) {
-                                    onFitnessFromOtherThread(g, f, n);
+    ga->set_fitness_callback([this](size_t g, const ai::FitnessRecord &fitness) {
+                                    onFitnessFromOtherThread(g, fitness);
                                 });
 
     MainWindow *window = window_ = new MainWindow;
@@ -255,14 +255,10 @@ void Application::onGenerationFromOtherThread(size_t generation_num, const ai::I
                               Q_ARG(ulong, generation_num), Q_ARG(ai::Individual, fittest));
 }
 
-void Application::onFitnessFromOtherThread(size_t generation_num, const double *fitness, size_t count)
+void Application::onFitnessFromOtherThread(size_t generation_num, const ai::FitnessRecord &fitness)
 {
-    QVector<qreal> fitness_vector;
-    fitness_vector.reserve(count);
-    std::copy(fitness, fitness + count, std::back_inserter(fitness_vector));
-
     QMetaObject::invokeMethod(this, "onFitness", Qt::QueuedConnection,
-                              Q_ARG(ulong, generation_num), Q_ARG(QVector<qreal>, std::move(fitness_vector)));
+                              Q_ARG(ulong, generation_num), Q_ARG(ai::FitnessRecord, fitness));
 }
 
 void Application::onGeneration(ulong generation_num, const ai::Individual fittest)
@@ -272,7 +268,7 @@ void Application::onGeneration(ulong generation_num, const ai::Individual fittes
     window_->instrumentEditor()->setValuesFromInstrument(fittest.ins_);
 }
 
-void Application::onFitness(ulong generation_num, QVector<qreal> fitness)
+void Application::onFitness(ulong generation_num, ai::FitnessRecord fitness)
 {
     #pragma message("TODO implement fitness display")
     //qDebug() << "Fitness";

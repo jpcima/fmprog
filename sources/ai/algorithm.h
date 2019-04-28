@@ -1,4 +1,5 @@
 #pragma once
+#include "algorithm_data.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -8,9 +9,10 @@
 namespace ai {
 
 struct GeneticData;
+struct FitnessRecord;
+struct Population;
+struct Individual;
 class Evaluation;
-class Population;
-class Individual;
 
 //
 class GeneticAlgorithm
@@ -20,7 +22,7 @@ public:
     ~GeneticAlgorithm();
 
     typedef std::function<void(size_t, const Individual &)> GenCallback;
-    typedef std::function<void(size_t, const double *, size_t)> FitCallback;
+    typedef std::function<void(size_t, const FitnessRecord &)> FitCallback;
 
     void set_generation_callback(GenCallback callback);
     void set_fitness_callback(FitCallback callback);
@@ -45,16 +47,6 @@ private:
     bool pause_ = false;
     std::condition_variable pause_cond_;
     std::mutex pause_mutex_;
-};
-
-//
-struct GeneticData
-{
-    static constexpr size_t population_size = 100;
-
-    std::unique_ptr<ai::Evaluation> eval_;
-    std::unique_ptr<ai::Population> population_;
-    size_t generation_num_ = 0;
 };
 
 } // namespace ai

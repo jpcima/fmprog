@@ -123,7 +123,8 @@ void GeneticAlgorithm::exec()
             return;
 
         /* Fitness */
-        double fitness[GeneticData::population_size];
+        FitnessRecord fitness_record;
+        double *fitness = fitness_record.data;
         unsigned fittest_index = 0;
         {
             double avg = 0;
@@ -141,7 +142,7 @@ void GeneticAlgorithm::exec()
         fittest_ind = *pop.get_member(fittest_index);
 
         if (fit_callback_)
-            fit_callback_(generation_num, fitness, GeneticData::population_size);
+            fit_callback_(generation_num, fitness_record);
 
         if (*quit)
             return;

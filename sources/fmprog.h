@@ -1,10 +1,12 @@
 #pragma once
 #include "ai/ai.h"
+#include "ai/algorithm_data.h"
 #include "utility/aubio++.h"
 #include <QApplication>
 #include <cstdint>
 
 namespace ai { class GeneticAlgorithm; }
+namespace ai { struct FitnessRecord; }
 class MainWindow;
 class QAudioOutput;
 
@@ -41,11 +43,11 @@ private:
     void resampleSound();
     void detectPitch();
     void onGenerationFromOtherThread(size_t generation_num, const ai::Individual &fittest);
-    void onFitnessFromOtherThread(size_t generation_num, const double *fitness, size_t count);
+    void onFitnessFromOtherThread(size_t generation_num, const ai::FitnessRecord &fitness);
 
 private slots:
     void onGeneration(ulong generation_num, const ai::Individual fittest);
-    void onFitness(ulong generation_num, QVector<qreal> fitness);
+    void onFitness(ulong generation_num, ai::FitnessRecord fitness);
 
 private:
     MainWindow *window_ = nullptr;
