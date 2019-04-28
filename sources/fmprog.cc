@@ -79,6 +79,9 @@ bool Application::loadAudioFile(const QString &filename)
     double file_sample_rate = 0;
     fvec_u file_sound = load_sound_file(filename.toLocal8Bit().data(), &file_sample_rate);
 
+    if (!file_sound)
+        return false;
+
     sndOriginal_ = std::move(file_sound);
     sampleRateOriginal_ = file_sample_rate;
 
