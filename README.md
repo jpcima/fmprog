@@ -13,6 +13,7 @@ You will need:
 - `libaubio-dev`
 - `qtbase5-dev`
 - `qtmultimedia5-dev`
+- `libqt5multimedia5-plugins`
 
 ## Download sources
 
